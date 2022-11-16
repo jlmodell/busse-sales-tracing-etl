@@ -1,9 +1,8 @@
-from beanie import Indexed, Document, Insert, Replace, before_event, ValidateOnSave
+from beanie import Indexed, Document, Insert, SaveChanges, Replace, before_event
 from datetime import datetime, timedelta
 from typing import Optional
-from pydantic import BaseModel
 from enum import Enum
-from pymongo import TEXT
+from pymongo import TEXT, ASCENDING
 
 
 class Rep(str, Enum):
@@ -36,6 +35,16 @@ class Rep(str, Enum):
     REP27 = "Rep27"
     REP28 = "Rep28"
     REP29 = "Rep29"
+    REP30 = "Rep30"
+    REP31 = "Rep31"
+    REP32 = "Rep32"
+    REP33 = "Rep33"
+    REP34 = "Rep34"
+    REP35 = "Rep35"
+    REP36 = "Rep36"
+    REP37 = "Rep37"
+    REP38 = "Rep38"
+    REP39 = "Rep39"
     REP40 = "Rep40"
     REP41 = "Rep41"
 
@@ -66,16 +75,6 @@ class MONTH(str, Enum):
     DEC = "Dec"
 
 
-class EndUser(BaseModel):
-    name: str
-    address: str
-    address2: Optional[str] = None
-    city: str
-    state: str
-    zip: str
-    country: Optional[str] = None
-
-
 YEAR = datetime.now().year + 1
 MONTHS = [m.value for m in MONTH]
 DISTRIBUTORS = [d.value for d in Distributor]
@@ -98,27 +97,44 @@ def valid_key(key: str):
 
 class Tracing(Document):
     rep: Rep
-    item: Indexed(str, index_type=TEXT)
+    item: str
     commission: float
+    sale: float
     date_of_sale: datetime
-    key: Indexed(str)  # MONTH_YEAR_DISTRIBUTOR
-    enduser: EndUser
+    key: str  # MONTH_YEAR_DISTRIBUTOR
+    name: str
+    address: str
+    address2: Optional[str] = None
+    city: str
+    state: str
+    zip: str
+    country: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    @before_event([Insert, Replace])
+    @before_event([Insert, Replace, SaveChanges])
     def updated_at_event(self):
         self.updated_at = datetime.now()
 
-    @before_event(Insert)
+    @before_event([Insert, SaveChanges])
     def created_at_event(self):
         self.created_at = datetime.now()
 
     class Settings:
         name = "tracings"
         use_cache = True
-        cache_expiration_time = timedelta(seconds=30)
-        cache_capacity = 5
+        indexes = [
+            [
+                ("item", TEXT),
+                ("name", TEXT),
+                ("address", TEXT),
+                ("city", TEXT),
+                ("state", TEXT),
+            ],
+            [("key", ASCENDING)],
+        ]
+        # cache_expiration_time = timedelta(seconds=30)
+        # cache_capacity = 5
         validate_on_save = True
 
     class Config:
@@ -126,18 +142,17 @@ class Tracing(Document):
             "example": {
                 "rep": "Rep1",
                 "item": "723",
+                "sale": 1.0,
                 "commission": 0.04,
                 "date_of_sale": datetime(2021, 1, 1, 0, 0, 0),
                 "key": "Jan_2021_Cardinal",
-                "enduser": {
-                    "name": "John Doe",
-                    "address": "123 Main St",
-                    "address2": "Apt 1",
-                    "city": "New York",
-                    "state": "NY",
-                    "zip": "10001",
-                    "country": "USA",
-                },
+                "name": "John Doe",
+                "address": "123 Main St",
+                "address2": "Apt 1",
+                "city": "New York",
+                "state": "NY",
+                "zip": "10001",
+                "country": "USA",
             }
         }
 
