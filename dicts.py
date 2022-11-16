@@ -1,10 +1,9 @@
 from pymongo import MongoClient
+from config import CONFIG
 
 
 def get_kits():
-    client = MongoClient(
-        "mongodb+srv://jmodell:5T1aBQa7@busseforce0.9fmow.mongodb.net/bussepricing?retryWrites=true&w=majority"
-    )
+    client = MongoClient(CONFIG.mongodb_atlas_uri)
     rep_db = client.busse_sales_reps
     kits = rep_db.kits
 

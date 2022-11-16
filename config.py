@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class Settings(BaseModel):
     mongodb_uri: str = config("MONGODB_URI")
-
+    mongodb_atlas_uri: str = config("MONGODB_ATLAS_URI")
     mail_server: str = config("MAIL_SERVER")
     mail_username: str = config("MAIL_USERNAME")
     mail_password: str = config("MAIL_PASSWORD")
